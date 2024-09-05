@@ -31,6 +31,10 @@ const userSchema = new Schema({
         lowercase: true,
         required: true,
     },
+    groupId: {
+        type: Schema.Types.ObjectId,
+        ref: 'group' 
+    }
 }, { collection: 'user' });
 
 userSchema.pre('save', async function (next) {

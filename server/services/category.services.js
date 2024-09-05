@@ -17,6 +17,15 @@ class CategoryService {
             throw error.message;
         }
     }
+
+    // -----ADMIN-----
+    static async listCategories() {
+        try {
+            return await CategoryModel.find();
+        } catch (error) {
+            throw error.message;
+        }
+    }
 }
 
 module.exports = CategoryService;
