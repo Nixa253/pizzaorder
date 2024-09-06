@@ -1,7 +1,7 @@
 const GroupPermission = require('../model/groupPermission'); 
 const UserModel = require('../model/user.model');
 
-const checkPermission = ( controller, action, requiredGroupName) => {
+const checkPermission = ( controller, action, requiredGroupNames) => {
     return async (req, res, next) => {
         try {
             if (!req.user || !req.user._id) {
@@ -20,8 +20,8 @@ const checkPermission = ( controller, action, requiredGroupName) => {
             }
 
             // Kiểm tra groupId.name nếu cần
-            if (requiredGroupName && user.groupId.name !== requiredGroupName) {
-                return res.status(403).json({ message: `Access denied: User's group is not ${requiredGroupName}` });
+            if (requiredGroupNames && !requiredGroupNames.some(name => user.groupId.name.includes(name))) {
+                return res.status(403).json({ message: `Access denied: User's group does not match any of ${requiredGroupNames.join(', ')}` });
             }
 
             const groupId = user.groupId._id; 
