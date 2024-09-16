@@ -11,6 +11,7 @@ const couponRouter = require('./routers/coupon.router');
 const categoryRouter = require('./routers/category.router');
 const groupRouter = require('./routers/group.router');
 const permissionRouter = require('./routers/permission.router');
+const groupPermissionRouter = require('./routers/groupPermission.router');
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use('/', couponRouter);
 app.use('/', categoryRouter);
 app.use('/', groupRouter);
 app.use('/', permissionRouter);
+app.use('/', groupPermissionRouter);
 
 module.exports = app;

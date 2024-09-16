@@ -26,7 +26,7 @@ exports.update = async (req, res, next) => {
 exports.readAll = async (req, res, next) => {
     try {
         const group = await GroupService.readAll();
-        res.status(200).json({ status: true, group });
+        res.status(200).json({ group });
     } catch (error) {
         next(error);
     }

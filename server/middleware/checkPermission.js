@@ -19,7 +19,13 @@ const checkPermission = ( controller, action, requiredGroupNames) => {
                 return res.status(400).json({ message: 'User does not belong to any group' });
             }
 
-            // Kiểm tra groupId.name nếu cần
+             // Check if the user's groupId matches the special groupId that has full permissions
+             const specialGroupId = '66d94d28c11c24619def8cd7';
+             if (user.groupId._id.toString() === specialGroupId) {
+                 return next(); // Grant full access without further checks
+             }  
+
+            // Kiểm tra groupId.name
             if (requiredGroupNames && !requiredGroupNames.some(name => user.groupId.name.includes(name))) {
                 return res.status(403).json({ message: `Access denied: User's group does not match any of ${requiredGroupNames.join(', ')}` });
             }

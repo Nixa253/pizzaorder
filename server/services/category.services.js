@@ -19,13 +19,40 @@ class CategoryService {
     }
 
     // -----ADMIN-----
-    static async listCategories() {
+    static async createCategory(categoryData) {
         try {
-            return await CategoryModel.find();
+            const category = new CategoryModel(categoryData);
+            return await category.save();
         } catch (error) {
             throw error.message;
         }
     }
+
+    static async updateCategoryById(categoryId, categoryData) {
+        try {
+            return await CategoryModel.findByIdAndUpdate(categoryId, categoryData, { new: true });
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async bulkDeleteCategories(ids) {
+        try {
+            const result = await CategoryModel.deleteMany({ _id: { $in: ids } });
+            return result;
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async deleteCategoryById(categoryId) {
+        try {
+            return await CategoryModel.findByIdAndDelete(categoryId);
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
 }
 
 module.exports = CategoryService;

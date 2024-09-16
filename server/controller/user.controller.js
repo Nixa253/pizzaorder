@@ -99,3 +99,16 @@ exports.editUser = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+//Website Admin
+exports.users = async (req, res, next) => {
+    try {
+        const listUser = await UserService.users();
+        if (!listUser) {
+            throw new Error('User not found');
+        }
+        res.json(listUser);
+    } catch (error) {
+        next(error);
+    }
+};

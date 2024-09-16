@@ -27,17 +27,48 @@ exports.getCategoryById = async (req, res, next) => {
 };
 
 // -----ADMIN-----
-exports.listCategories = async (req, res, next) => {
+exports.createCategory = async (req, res, next) => {
     try {
-        if (req.user.groupId !== '66cfe9e5ca11525ca5bdc36a') {
-            return res.status(403).json({ message: 'Forbidden: You do not have access to this resource' });
-        }
+        const categoryData = req.body;
+        const category = await CategoryService.createCategory(categoryData);
+        res.status(201).json(category);
+    } catch (error) {
+        next(error);
+    }
+};
 
-        const categories = await CategoryService.listCategories();
-        if (!categories) {
-            throw new Error('Categories not found');
+exports.updateCategoryById = async (req, res, next) => {
+    try {
+        const categoryId = req.params.categoryId;
+        const categoryData = req.body;
+        const updatedCategory = await CategoryService.updateCategoryById(categoryId, categoryData);
+        if (!updatedCategory) {
+            throw new Error('Category not found');
         }
-        res.json(categories);
+        res.json(updatedCategory);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.bulkDeleteCategories = async (req, res, next) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+        }
+        const result = await CategoryService.bulkDeleteCategories(ids);
+        res.status(200).json({ message: 'Categories deleted successfully', deletedCount: result.deletedCount });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteCategoryById = async (req, res, next) => {
+    try {
+        const categoryId = req.params.categoryId;
+        await CategoryService.deleteCategoryById(categoryId);
+        res.status(204).send();
     } catch (error) {
         next(error);
     }

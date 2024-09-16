@@ -52,6 +52,15 @@ class UserService {
             throw error;
         }
     }
+
+    //Website Admin
+    static async users() {
+        try {
+            return await UserModel.find()
+        } catch (error) {
+            throw error.message;
+        }
+    }
 }
 
 module.exports = UserService;

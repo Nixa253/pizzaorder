@@ -3,7 +3,7 @@ const db = require('../config/db');
 const { Schema } = mongoose;
 
 const categorySchema = new Schema({
-    _id: Schema.Types.ObjectId,
+    //_id: Schema.Types.ObjectId,
     nameCategory: {
         type: String,
         required: true,

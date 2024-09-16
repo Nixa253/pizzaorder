@@ -8,21 +8,21 @@ const groupSchema = new Schema({
   name: { type: String, required: true }
 },{ collection: 'group' });
 
-groupSchema.post('save', async function(doc) {
-  try{
-    const permissions = await Permission.find();
-    const groupPermissions = permissions.map(permission => ({
-      groupId: doc._id,
-      permissionId: permission._id,
-      controller: permission.controller,
-      action: permission.action
-    }));
+// groupSchema.post('save', async function(doc) {
+//   try{
+//     const permissions = await Permission.find();
+//     const groupPermissions = permissions.map(permission => ({
+//       groupId: doc._id,
+//       permissionId: permission._id,
+//       controller: permission.controller,
+//       action: permission.action
+//     }));
     
-    await GroupPermission.insertMany(groupPermissions);
-    console.log('GroupPermissions created after Group save');
-  } catch (error) {
-    console.error('Error in Group post-save hook:', error);
-  }});
+//     await GroupPermission.insertMany(groupPermissions);
+//     console.log('GroupPermissions created after Group save');
+//   } catch (error) {
+//     console.error('Error in Group post-save hook:', error);
+//   }});
 
 const Group = db.model('group', groupSchema);
 
