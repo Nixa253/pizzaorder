@@ -5,6 +5,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import StoreIcon from "@mui/icons-material/Store";
 import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import SettingsSystemDaydreamOutlinedIcon from "@mui/icons-material/SettingsSystemDaydreamOutlined";
 import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
@@ -12,23 +13,41 @@ import CategoryIcon from '@mui/icons-material/Category';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import DiscountIcon from '@mui/icons-material/Discount';
-import { Link } from "react-router-dom";
+import ConfirmLogout from "./ConfirmLogout";
+import { Link, useNavigate} from "react-router-dom";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { useContext, useEffect, useState } from "react";
+
 
 const Sidebar = ({ setCurrentTable }) => {
   const { dispatch } = useContext(DarkModeContext);
   const [userGroup, setUserGroup] = useState('');
+  const navigate = useNavigate();
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
   useEffect(() => {
     const group = localStorage.getItem('userGroup');
     setUserGroup(group);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userGroup');
+    navigate('/login');
+  };
+
+  const handleOpenLogoutDialog = () => {
+    setOpenLogoutDialog(true);
+  };
+
+  const handleCloseLogoutDialog = () => {
+    setOpenLogoutDialog(false);
+  };
+
   return (
     <div className="sidebar">
       <div className="top">
-        <Link to="/" style={{ textDecoration: "none" }}>
+        <Link to="/home" style={{ textDecoration: "none" }}>
           <span className="logo">DOMINI ADMIN</span>
         </Link>
       </div>
@@ -36,7 +55,7 @@ const Sidebar = ({ setCurrentTable }) => {
       <div className="center">
         <ul>
           <p className="title">MAIN</p>
-          <Link to="/" style={{ textDecoration: "none" }}>
+          <Link to="/home" style={{ textDecoration: "none" }}>
             <li onClick={() => setCurrentTable("datatable")}>
               <DashboardIcon className="icon" />
               <span>Dashboard</span>
@@ -58,19 +77,25 @@ const Sidebar = ({ setCurrentTable }) => {
             </li>
           </Link>
           <Link to="/products" style={{ textDecoration: "none" }}>
-            <li>
+          <li onClick={() => setCurrentTable("productstable")}>          
               <StoreIcon className="icon" />
               <span>Products</span>
             </li>
+          </Link> 
+          <Link to="/toppings" style={{ textDecoration: "none" }}>
+          <li onClick={() => setCurrentTable("toppingtable")}>          
+              <BakeryDiningIcon className="icon" />
+              <span>Toppings</span>
+            </li>
           </Link>
-          <Link to="/coupons" style={{ textDecoration: "none" }}>
-            <li>
+          <Link to="/vouchers" style={{ textDecoration: "none" }}>
+            <li onClick={() => setCurrentTable("vouchertable")}>
               <DiscountIcon className="icon" />
-              <span>Coupons</span>
+              <span>Vouchers</span>
             </li>
           </Link>
           <Link to="/orders" style={{ textDecoration: "none" }}>
-            <li>
+            <li onClick={() => setCurrentTable("orderstable")}>
               <CreditCardIcon className="icon" />
               <span>Orders</span>
             </li>
@@ -92,7 +117,7 @@ const Sidebar = ({ setCurrentTable }) => {
               </li>
             </Link>
           )}
-          <p className="title">SERVICE</p>
+          {/* <p className="title">SERVICE</p>
           {userGroup === '66d94d28c11c24619def8cd7' && (
             <>
               <li>
@@ -108,18 +133,23 @@ const Sidebar = ({ setCurrentTable }) => {
           <li>
             <SettingsApplicationsIcon className="icon" />
             <span>Settings</span>
-          </li>
+          </li> */}
           <p className="title">USER</p>
-          <Link to="/user" style={{ textDecoration: "none" }}>
+          <Link to="/profile" style={{ textDecoration: "none" }}>
             <li>
               <AccountCircleOutlinedIcon className="icon" />
               <span>Profile</span>
             </li>
           </Link>
-          <li>
-            <ExitToAppIcon className="icon" />
-            <span>Logout</span>
-          </li>
+          <li onClick={handleOpenLogoutDialog}>
+        <ExitToAppIcon className="icon" />
+        <span>Logout</span>
+      </li>
+      <ConfirmLogout 
+        open={openLogoutDialog} 
+        handleClose={handleCloseLogoutDialog} 
+        handleLogout={handleLogout}
+      />
         </ul>
       </div>
       <div className="bottom">

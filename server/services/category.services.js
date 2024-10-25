@@ -1,4 +1,5 @@
 const CategoryModel = require('../model/category.model');
+require('dotenv').config();
 
 class CategoryService {
     static async getAllCategories() {
@@ -30,7 +31,12 @@ class CategoryService {
 
     static async updateCategoryById(categoryId, categoryData) {
         try {
-            return await CategoryModel.findByIdAndUpdate(categoryId, categoryData, { new: true });
+            const category = await CategoryModel.findById(categoryId);
+            if (!category) {
+                throw new Error('Category not found');
+            }
+            Object.assign(category, categoryData);
+            return await category.save();
         } catch (error) {
             throw error.message;
         }
@@ -50,6 +56,14 @@ class CategoryService {
             return await CategoryModel.findByIdAndDelete(categoryId);
         } catch (error) {
             throw error.message;
+        }
+    }
+
+    static async getCategories() {
+        try {
+            return await CategoryModel.find().populate('parentCategory');
+        } catch (error) {
+            throw error;
         }
     }
 

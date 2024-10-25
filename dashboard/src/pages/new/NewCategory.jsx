@@ -8,19 +8,31 @@ import axiosInstance from '../../components/datatable/axiosInstance';
 const NewCategory = ({ title }) => {
   const [inputs, setInputs] = useState({
     nameCategory: "",
+    type: "",
+    parentCategory: "",
     imageUrl: ""
   });
   const [errors, setErrors] = useState({});
+  const [categories, setCategories] = useState([]);
   const { categoryId } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fetch all categories
+    axiosInstance.get('/categories')
+      .then(response => {
+        setCategories(response.data);
+      })
+      .catch(error => console.error('Error fetching categories:', error));
+
     if (categoryId) {
       axiosInstance.get(`/categories/${categoryId}`)
         .then(response => {
           const data = response.data;
           setInputs({
             nameCategory: data.nameCategory,
+            type: data.type,
+            parentCategory: data.parentCategory || "",
             imageUrl: data.image 
           });
         })
@@ -28,15 +40,57 @@ const NewCategory = ({ title }) => {
     }
   }, [categoryId]);
 
+  const createCategoryHierarchy = (categories) => {
+    const categoryMap = {};
+    categories.forEach(category => {
+      categoryMap[category._id] = { ...category, children: [] };
+    });
+
+    const rootCategories = [];
+    categories.forEach(category => {
+      if (category.parentCategory) {
+        const parent = categoryMap[category.parentCategory];
+        if (parent) {
+          parent.children.push(categoryMap[category._id]);
+        }
+      } else {
+        rootCategories.push(categoryMap[category._id]);
+      }
+    });
+
+    return rootCategories;
+  };
+
+  const renderCategoryTree = (categories, level = 0) => {
+    return categories.map(category => (
+      <div key={category._id} style={{ marginLeft: `${level * 20}px` }}>
+        <label>
+          <input
+            type="radio"
+            name="parentCategory"
+            value={category._id}
+            checked={inputs.parentCategory === category._id}
+            onChange={handleInputChange}
+          />
+          {category.nameCategory}
+        </label>
+        {category.children.length > 0 && renderCategoryTree(category.children, level + 1)}
+      </div>
+    ));
+  };
+
   const validateForm = () => {
     let formErrors = {};
     if (!inputs.nameCategory.trim()) {
-      formErrors.nameCategory = "Category name is required";
+      formErrors.nameCategory = "Tên danh mục là bắt buộc";
+    }
+    if (!inputs.type.trim()) {
+      formErrors.type = "Loại là bắt buộc";
     }
     if (!inputs.imageUrl.trim()) {
-      formErrors.imageUrl = "Image URL is required";
+      formErrors.imageUrl = "URL hình ảnh là bắt buộc";
     } else if (!isValidUrl(inputs.imageUrl)) {
-      formErrors.imageUrl = "Please enter a valid URL";
+      formErrors.imageUrl = "Vui lòng nhập URL hợp lệ";
     }
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
@@ -54,27 +108,40 @@ const NewCategory = ({ title }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     const categoryData = {
       nameCategory: inputs.nameCategory,
+      type: inputs.type,
+      parentCategory: inputs.parentCategory || null,
       image: inputs.imageUrl
     };
-
+  
     const apiCall = categoryId
       ? axiosInstance.put(`/updateCategory/${categoryId}`, categoryData)
       : axiosInstance.post('/createCategory', categoryData);
-
+  
     apiCall
       .then(() => {
         navigate("/categories");
       })
       .catch(error => {
         console.error('Error submitting category:', error);
-        if (error.response && error.response.data) {
-          setErrors(error.response.data);
+  
+        // Lưu thông báo lỗi từ server vào state
+        if (error.response && error.response.data && error.response.data.message) {
+          setErrors(prevErrors => ({
+            ...prevErrors,
+            serverError: error.response.data.message  // Lưu thông báo lỗi từ server
+          }));
+        } else {
+          setErrors(prevErrors => ({
+            ...prevErrors,
+            serverError: "Phân cấp danh mục không hợp lệ: một danh mục không thể là cha mẹ hoặc tổ tiên của chính nó."
+          }));
         }
       });
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -96,36 +163,70 @@ const NewCategory = ({ title }) => {
           <div className="right">
             <form onSubmit={handleSubmit}>
               <div className="formInput">
-                <label>Category Name</label>
+                <label>Tên danh mục</label>
                 <input
                   type="text"
                   name="nameCategory"
                   value={inputs.nameCategory}
                   onChange={handleInputChange}
-                  placeholder="Enter category name"
+                  placeholder="Nhập tên danh mục"
                 />
                 {errors.nameCategory && <span className="error">{errors.nameCategory}</span>}
               </div>
-
+  
               <div className="formInput">
-                <label>Image URL</label>
+                <label>Loại</label>
+                <input
+                  type="text"
+                  name="type"
+                  value={inputs.type}
+                  onChange={handleInputChange}
+                  placeholder="Nhập loại danh mục"
+                />
+                {errors.type && <span className="error">{errors.type}</span>}
+              </div>
+  
+              <div className="formInput">
+                <label>Danh mục cha</label>
+                <div className="categoryTree">
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="parentCategory"
+                        value=""
+                        checked={inputs.parentCategory === ""}
+                        onChange={handleInputChange}
+                      />
+                      Không có
+                    </label>
+                  </div>
+                  {renderCategoryTree(createCategoryHierarchy(categories))}
+                </div>
+              </div>
+  
+              <div className="formInput">
+                <label>URL hình ảnh</label>
                 <input
                   type="text"
                   name="imageUrl"
                   value={inputs.imageUrl}
                   onChange={handleInputChange}
-                  placeholder="Enter image URL"
+                  placeholder="Nhập URL hình ảnh"
                 />
                 {errors.imageUrl && <span className="error">{errors.imageUrl}</span>}
               </div>
-
-              <button type="submit">Send</button>
+  
+              {/* Hiển thị lỗi từ server */}
+              {errors.serverError && <div className="error server-error">{errors.serverError}</div>}
+  
+              <button type="submit">Gửi</button>
             </form>
           </div>
         </div>
       </div>
     </div>
-  );
+  );  
 };
 
 export default NewCategory;

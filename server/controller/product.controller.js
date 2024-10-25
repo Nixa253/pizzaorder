@@ -1,4 +1,5 @@
 const ProductService = require('../services/product.services');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 exports.getAllProduct = async (req, res, next) => {
@@ -57,4 +58,65 @@ exports.getProductById = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.createProduct = async (req, res, next) => {
+    try {
+        const productData = {
+            ...req.body,
+            _id: new mongoose.Types.ObjectId(),
+            dateadded: new Date()
+        };
+        const product = await ProductService.createProduct(productData);
+        res.status(201).json(product);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateProductById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const updatedProduct = await ProductService.updateProductById(id, req.body);
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json(updatedProduct);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.bulkDeleteProducts = async (req, res, next) => {
+    try {
+        const { ids } = req.body;
+        const result = await ProductService.bulkDeleteProducts(ids);
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteProductById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const deletedProduct = await ProductService.deleteProductById(id);
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.json({ message: 'Product deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getProducts = async (req, res, next) => {
+    try {
+      const products = await ProductService.getProducts();
+      res.json(products);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
 

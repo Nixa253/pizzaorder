@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from './axiosInstance';
 import './datatable.scss';
 
 const Permissionstable = () => {
   const { groupId } = useParams();
+  const location = useLocation();
+  const showGrantButton = location.state?.showGrantButton || false;
   const [permissions, setPermissions] = useState([]);
   const [groupPermissions, setGroupPermissions] = useState([]);
 
@@ -21,7 +23,7 @@ const Permissionstable = () => {
           setPermissions([]);
         }
       })
-      .catch(error => console.error('Error fetching permissions:', error));
+      .catch(error => console.error('Lỗi khi lấy quyền:', error));
 
     axiosInstance.get(`/groupPermission/${groupId}`)
       .then(response => {
@@ -34,7 +36,7 @@ const Permissionstable = () => {
           setGroupPermissions([]);
         }
       })
-      .catch(error => console.error('Error fetching group permissions:', error));
+      .catch(error => console.error('Lỗi khi lấy quyền nhóm:', error));
   }, [groupId]);
 
   const handlePermissionClick = (permissionId, controller, action, isGranted) => {
@@ -57,56 +59,55 @@ const Permissionstable = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    setPermissions(permissions.filter((item) => item._id !== id));
-  };
-
-  const columns = [
-    { field: '_id', headerName: 'ID', width: 300 },
-    { field: 'controller', headerName: 'Controller', width: 300 },
-    { field: 'action', headerName: 'Action Permission', width: 260,  
+  const columns = useMemo(() => {
+    const baseColumns = [
+      { field: '_id', headerName: 'ID', width: 300 },
+      { field: 'controller', headerName: 'Controller', width: 300 },
+      { field: 'action', headerName: 'Quyền hành động', width: 260,  
         renderCell: (params) => {
-        return (
-          <div className={`cellWithStatus ${params.row.action}`}>
-            {params.row.action}
-          </div>
-        );
-      },}, 
-    {
-        field: "actions",
-        headerName: "Action",
-        width: 300,
-        renderCell: (params) => {
-        const isGranted = groupPermissions.some(gp => gp.permissionId === params.row._id);
-
           return (
-            <div className="cellAction">
-            <div
-            className={isGranted ? 'grantedButton' : 'grantButton'}
-            onClick={() => handlePermissionClick(params.row._id, params.row.controller, params.row.action, isGranted)}
-          >
-            {isGranted ? 'Hủy cấp quyền' : 'Cấp quyền'}
-            </div>
-              <div
-                className="deleteButton"
-                onClick={() => handleDelete(params.row._id)}
-              >
-                Delete
-              </div>
-             
+            <div className={`cellWithStatus ${params.row.action}`}>
+              {params.row.action}
             </div>
           );
         },
       },
-  ];
+    ];
+
+    if (showGrantButton) {
+      baseColumns.push({
+        field: "actions",
+        headerName: "Hành động",
+        width: 300,
+        renderCell: (params) => {
+          const isGranted = groupPermissions.some(gp => gp.permissionId === params.row._id);
+
+          return (
+            <div className="cellAction">
+              <div
+                className={isGranted ? 'grantedButton' : 'grantButton'}
+                onClick={() => handlePermissionClick(params.row._id, params.row.controller, params.row.action, isGranted)}
+              >
+                {isGranted ? 'Hủy cấp quyền' : 'Cấp quyền'}
+              </div>
+            </div>
+          );
+        },
+      });
+    }
+
+    return baseColumns;
+  }, [showGrantButton, groupPermissions]);
 
   return (
     <div className="datatable">
       <div className="datatableTitle">
-        Permissions
-        <Link to="/permissons/new" className="link">
-          Add New
-        </Link>
+        Quyền
+        {showGrantButton && (
+          <Link to="/permissions/new" className="link">
+            Thêm mới
+          </Link>
+        )}
       </div>
       <DataGrid
         className="datagrid"
@@ -114,7 +115,6 @@ const Permissionstable = () => {
         columns={columns}
         pageSize={9}
         rowsPerPageOptions={[9]}
-        checkboxSelection
         getRowId={(row) => row._id}
       />
     </div>

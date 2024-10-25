@@ -4,28 +4,26 @@ import { Link } from 'react-router-dom';
 import axiosInstance from './axiosInstance';
 import './datatable.scss';
 
-// Custom Confirmation Dialog
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
+import ErrorBoundary from './ErrorBoundary';
 
-// Custom Alert component for user-facing messages
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { Alert, Snackbar } from '@mui/material';
 
 const Categoriestable = () => {
   const [state, setState] = useState({
     categories: [],
     selectedRows: [],
-    permissions: {
-      canDelete: false,
-      canEdit: false,
-      canCreate: false
-    },
+    permissions: [],
     isLoading: true,
     confirmDialog: { isOpen: false, title: '', content: '' },
     alert: { isOpen: false, message: '', severity: 'info' }
   });
 
   const checkPermission = useCallback((permissions, action) => {
-    return permissions.some(permission => permission.action.toLowerCase() === action);
+    return permissions.some(permission => 
+      permission.controller.toLowerCase() === 'categorycontroller' && 
+      permission.action.toLowerCase() === action.toLowerCase()
+    );
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -47,11 +45,7 @@ const Categoriestable = () => {
       setState(prevState => ({
         ...prevState,
         categories: Array.isArray(categories) ? categories : [],
-        permissions: {
-          canDelete: checkPermission(permissions, 'delete'),
-          canEdit: checkPermission(permissions, 'update'),
-          canCreate: checkPermission(permissions, 'create')
-        },
+        permissions: permissions,
         isLoading: false
       }));
     } catch (error) {
@@ -62,7 +56,7 @@ const Categoriestable = () => {
         alert: { isOpen: true, message: 'Error fetching data. Please try again.', severity: 'error' }
       }));
     }
-  }, [checkPermission]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -78,8 +72,8 @@ const Categoriestable = () => {
 
   const handleDelete = useCallback((id) => {
     openConfirmDialog(
-      'Confirm Deletion',
-      'Are you sure you want to delete this category?'
+      'Xác nhận xóa',
+      'Bạn có chắc chắn muốn xóa danh mục này không?'
     );
     setState(prev => ({ ...prev, confirmDialog: { ...prev.confirmDialog, onConfirm: () => performDelete(id) } }));
   }, []);
@@ -90,73 +84,80 @@ const Categoriestable = () => {
       setState(prevState => ({
         ...prevState,
         categories: prevState.categories.filter((category) => category._id !== id),
-        alert: { isOpen: true, message: 'Category deleted successfully', severity: 'success' }
+        alert: { isOpen: true, message: 'Xóa danh mục thành công', severity: 'success' }
       }));
     } catch (error) {
       console.error('Error deleting category:', error);
       setState(prev => ({ 
         ...prev, 
-        alert: { isOpen: true, message: 'Error deleting category. Please try again.', severity: 'error' }
+        alert: { isOpen: true, message: 'Lỗi khi xóa danh mục. Vui lòng thử lại.', severity: 'error' }
       }));
     }
   };
 
-  const handleBulkDelete = useCallback(() => {
-    if (state.selectedRows.length === 0) {
-      setState(prev => ({ 
-        ...prev, 
-        alert: { isOpen: true, message: 'No rows selected for deletion', severity: 'warning' }
-      }));
-      return;
-    }
-
-    openConfirmDialog(
-      'Confirm Bulk Deletion',
-      `Are you sure you want to delete ${state.selectedRows.length} selected categories?`
-    );
-    setState(prev => ({ ...prev, confirmDialog: { ...prev.confirmDialog, onConfirm: performBulkDelete } }));
-  }, [state.selectedRows]);
-
-  const performBulkDelete = async () => {
+  const performBulkDelete = useCallback(async () => {
     try {
       await axiosInstance.post('/bulkDeleteCategories', { ids: state.selectedRows });
       setState(prevState => ({
         ...prevState,
         categories: prevState.categories.filter((category) => !state.selectedRows.includes(category._id)),
         selectedRows: [],
-        alert: { isOpen: true, message: 'Categories deleted successfully', severity: 'success' }
+        alert: { isOpen: true, message: 'Xóa danh mục thành công', severity: 'success' }
       }));
     } catch (error) {
       console.error('Error deleting categories:', error);
       setState(prev => ({ 
         ...prev, 
-        alert: { isOpen: true, message: 'Error deleting categories. Please try again.', severity: 'error' }
+        alert: { isOpen: true, message: 'Lỗi khi xóa danh mục. Vui lòng thử lại.', severity: 'error' }
       }));
     }
-  };
+  }, [state.selectedRows]);
+  
+  const handleBulkDelete = useCallback(() => {
+    if (state.selectedRows.length === 0) {
+      setState(prev => ({ 
+        ...prev, 
+        alert: { isOpen: true, message: 'Không có hàng nào được chọn để xóa', severity: 'warning' }
+      }));
+      return;
+    }
+  
+    openConfirmDialog(
+      'Xác nhận xóa hàng loạt',
+      `Bạn có chắc chắn muốn xóa ${state.selectedRows.length} danh mục đã chọn không?`
+    );
+    setState(prev => ({ ...prev, confirmDialog: { ...prev.confirmDialog, onConfirm: performBulkDelete } }));
+  }, [state.selectedRows, performBulkDelete]);
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 250 },
-    { field: 'nameCategory', headerName: 'Name', width: 250 },
-    { field: 'image', headerName: 'Image URL', width: 500 },
+    { field: 'nameCategory', headerName: 'Tên danh mục', width: 250 },
+    { field: 'type', headerName: 'Loại', width: 150 },
+    { 
+      field: 'parentCategory', 
+      headerName: 'Danh mục cha', 
+      width: 250,
+      valueGetter: (params) => params.row.parentCategory ? params.row.parentCategory.nameCategory : 'Không có'
+    },
+    { field: 'image', headerName: 'URL hình ảnh', width: 500 },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: "Hành động",
       width: 300,
       renderCell: (params) => {
         return (
           <div className="cellAction">
-            {state.permissions.canEdit && (
+            {checkPermission(state.permissions, 'update') && (
               <Link to={`/categories/edit/${params.row._id}`} className="editButton">
-                Edit
+                Sửa
               </Link>
             )}
-            {state.permissions.canDelete && (
+            {checkPermission(state.permissions, 'delete') && (
               <div
                 className="deleteButton"
                 onClick={() => handleDelete(params.row._id)}
               >
-                Delete
+                Xóa
               </div>
             )}
           </div>
@@ -173,17 +174,18 @@ const Categoriestable = () => {
   };
 
   return (
+    <ErrorBoundary>
       <div className="datatable">
         <div className="datatableTitle">
-          Categories
-          {state.permissions.canCreate && (
+          Danh mục
+          {checkPermission(state.permissions, 'create') && (
             <Link to="/categories/new" className="link">
-              Add New
+              Thêm mới
             </Link>
           )}
-          {state.permissions.canDelete && (
+          {checkPermission(state.permissions, 'delete') && (
             <div className="linkDelete" onClick={handleBulkDelete}>
-              Delete Selected
+              Xóa đã chọn
             </div>
           )}
         </div>
@@ -218,12 +220,12 @@ const Categoriestable = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeConfirmDialog}>Cancel</Button>
+            <Button onClick={closeConfirmDialog}>Hủy</Button>
             <Button onClick={() => {
               state.confirmDialog.onConfirm();
               closeConfirmDialog();
             }} autoFocus>
-              Confirm
+              Xác nhận
             </Button>
           </DialogActions>
         </Dialog>
@@ -234,6 +236,7 @@ const Categoriestable = () => {
           </Alert>
         </Snackbar>
       </div>
+    </ErrorBoundary>
   );
 };
 

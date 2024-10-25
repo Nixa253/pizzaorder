@@ -20,34 +20,24 @@ const Datatable = () => {
           setData([]); 
         }
       })
-      .catch(error => console.error('Error fetching groups:', error));
+      .catch(error => console.error('Lỗi khi lấy nhóm:', error));
   }, []);
 
-  // const handleDelete = (id) => {
-  //   setData(data.filter((item) => item._id !== id));
-  // };
-
   const handlePermissionClick = (groupId) => {
-    navigate(`/permissions/${groupId}`);
+    navigate(`/permissions/${groupId}`, { state: { showGrantButton: true } });
   };
 
   const columns = [
     { field: '_id', headerName: 'ID', width: 250 },
-    { field: 'name', headerName: 'Name', width: 200 },
-    { field: 'description', headerName: 'Description', width: 400 },
+    { field: 'name', headerName: 'Tên', width: 200 },
+    { field: 'description', headerName: 'Mô tả', width: 400 },
     {
       field: "action",
-      headerName: "Action",
+      headerName: "Hành động",
       width: 300,
       renderCell: (params) => {
         return (
           <div className="cellAction">          
-            {/* <div
-              className="deleteButton"
-              onClick={() => handleDelete(params.row._id)}
-            >
-              Delete
-            </div> */}
             <div
               className="permissionButton"
               onClick={() => handlePermissionClick(params.row._id)}
@@ -63,10 +53,10 @@ const Datatable = () => {
   return (
     <div className="datatable">
       <div className="datatableTitle">
-        Add New Group
-        <Link to="/group/new" className="link">
-          Add New
-        </Link>
+        Group
+        {/* <Link to="/group/new" className="link">
+          Thêm mới
+        </Link> */}
       </div>
       <DataGrid
         className="datagrid"
@@ -74,7 +64,6 @@ const Datatable = () => {
         columns={columns}
         pageSize={9}
         rowsPerPageOptions={[9]}
-        checkboxSelection
         getRowId={(row) => row._id}
       />
     </div>

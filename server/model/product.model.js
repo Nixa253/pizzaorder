@@ -3,11 +3,11 @@ const db = require('../config/db');
 const { Schema } = mongoose;
 
 const productSchema = new Schema({
-    _id: Schema.Types.ObjectId,
-    categoryId: {
-        type: Schema.Types.ObjectId,
-        required: true,
-    },
+    // _id: Schema.Types.ObjectId,
+    // categoryId: {
+    //     type: Schema.Types.ObjectId,
+    //     required: true,
+    // },
     name: {
         type: String,
         required: true,
@@ -35,7 +35,22 @@ const productSchema = new Schema({
     dateadded: {
         type: Date,
         required: true,
-    }
+    },
+    category: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'category', 
+        required: true 
+    },
+    availableSizes: [{ 
+        type: String 
+    }],
+    availableCrusts: [{ 
+        type: String 
+    }],
+    defaultToppings: [{ 
+        type: Schema.Types.ObjectId, 
+        ref: 'topping', 
+    }]
 }, { collection: 'product' });
 
 const ProductModel = db.model('product', productSchema);

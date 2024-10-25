@@ -12,16 +12,26 @@ const categoryRouter = require('./routers/category.router');
 const groupRouter = require('./routers/group.router');
 const permissionRouter = require('./routers/permission.router');
 const groupPermissionRouter = require('./routers/groupPermission.router');
+const toppingRouter = require('./routers/topping.router');
+const voucherRouter = require('./routers/voucher.router');
+const authRouter = require('./routers/auth.router');
 
 const app = express();
 
 // Sử dụng CORS middleware
 app.use(cors({
-  origin: 'http://localhost:3000'
+  origin: '*', // Cho phép tất cả các domain truy cập API
+  credentials: true, 
 }));
 
 // Sử dụng body-parser middleware
 app.use(body_parser.json());
+
+// Thêm header COOP
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
 
 // Định nghĩa các route
 app.use('/', userRouter);
@@ -34,5 +44,9 @@ app.use('/', categoryRouter);
 app.use('/', groupRouter);
 app.use('/', permissionRouter);
 app.use('/', groupPermissionRouter);
+app.use('/', toppingRouter);
+app.use('/', voucherRouter);
+app.use('/', authRouter);
+
 
 module.exports = app;

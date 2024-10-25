@@ -12,6 +12,11 @@ router.put('/editUser', authenticateJWT, UserController.editUser);
 router.put('/updateAddress', authenticateJWT, UserController.updateAddress);
 
 //Website Admin
-router.get('/users', authMiddleware, checkPermission('SuperAdminController', 'read',  ['SuperAdmin','SuperAdmin']), UserController.users);
+router.get('/users', authMiddleware, checkPermission('UserController', 'read'), UserController.users);
+router.get('/users/:userId', authMiddleware, checkPermission('UserController', 'read'), UserController.getUserById);
+router.post('/createUser', authMiddleware, checkPermission('UserController', 'create'), UserController.createUser);
+router.put('/updateUser/:userId', authMiddleware, checkPermission('UserController', 'update'), UserController.updateUserById);
+router.delete('/deleteUser/:userId', authMiddleware, checkPermission('UserController', 'delete'), UserController.deleteUserById);
+router.post('/bulkDeleteUsers', authMiddleware, checkPermission('UserController', 'delete'), UserController.bulkDeleteUsers);
 
 module.exports = router;

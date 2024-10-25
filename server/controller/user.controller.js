@@ -112,3 +112,66 @@ exports.users = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getUserById = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const user = await UserService.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.createUser = async (req, res, next) => {
+    try {
+        const userData = req.body;
+        const newUser = await UserService.createUser(userData);
+        res.status(201).json(newUser);
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: error.message });
+        }
+        next(error);
+    }
+}
+
+exports.updateUserById = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const updateData = req.body;
+        const updatedUser = await UserService.updateUserById(userId, updateData);
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.deleteUserById = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const deletedUser = await UserService.deleteUserById(userId);
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.bulkDeleteUsers = async (req, res, next) => {
+    try {
+        const { userIds } = req.body;
+        const result = await UserService.bulkDeleteUsers(userIds);
+        res.json({ message: `${result.deletedCount} users deleted successfully` });
+    } catch (error) {
+        next(error);
+    }
+}

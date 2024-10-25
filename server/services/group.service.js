@@ -30,7 +30,8 @@ class GroupService {
 
     static async readAll() {
         try {
-            const group = await GroupModel.find();
+            const group = await GroupModel.find({name: { $ne: "SuperAdmin" } });
+            //const group = await GroupModel.find();
             return group;
         } catch (error) {
             throw error.message;

@@ -9,6 +9,7 @@ const userSchema = new Schema({
         type: String,
         lowercase: true,
         required: true,
+        unique: true 
     },
     password: {
         type: String,
@@ -21,6 +22,7 @@ const userSchema = new Schema({
     number: {
         type: String,
         required: true,
+        unique: true 
     },
     address: {
         type: String,
@@ -30,10 +32,19 @@ const userSchema = new Schema({
         type: String,
         lowercase: true,
         required: true,
+        unique: true 
     },
     groupId: {
         type: Schema.Types.ObjectId,
         ref: 'group' 
+    },
+    facebookId: {
+        type: String,
+        default: null
+    },
+    googleId: {
+        type: String,
+        default: null
     }
 }, { collection: 'user' });
 

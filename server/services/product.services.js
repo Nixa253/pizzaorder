@@ -1,4 +1,5 @@
 const ProductModel = require('../model/product.model')
+const ToppingModel = require('../model/topping.model');
 
 class ProductService {
     static async getAllProduct() {
@@ -39,6 +40,47 @@ class ProductService {
             return products;
         } catch (error) {
             throw error.message;
+        }
+    }
+    static async createProduct(productData) {
+        try {
+            const product = new ProductModel(productData);
+            return await product.save();
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async updateProductById(productId, productData) {
+        try {
+            return await ProductModel.findByIdAndUpdate(productId, productData, { new: true });
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async bulkDeleteProducts(ids) {
+        try {
+            const result = await ProductModel.deleteMany({ _id: { $in: ids } });
+            return result;
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async deleteProductById(productId) {
+        try {
+            return await ProductModel.findByIdAndDelete(productId);
+        } catch (error) {
+            throw error.message;
+        }
+    }
+
+    static async getProducts() {
+        try {
+            return await ProductModel.find().populate('category').populate('defaultToppings');
+        } catch (error) {
+            throw error;
         }
     }
 }

@@ -73,3 +73,12 @@ exports.deleteCategoryById = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getCategories = async (req, res, next) => {
+    try {
+        const categories = await CategoryService.getCategories();
+        res.json(categories);
+    } catch (error) {
+        next(error);
+    }
+};
