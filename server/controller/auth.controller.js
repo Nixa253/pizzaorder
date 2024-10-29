@@ -1,12 +1,93 @@
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const axios = require('axios'); 
+const twilio = require('twilio');
 const UserService = require('../services/user.services');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+exports.sendOtp = async (req, res, next) => {
+  const { number } = req.body;
+  try {
+    // Kiểm tra xem số điện thoại nhận OTP có giống với số điện thoại gửi OTP không
+    if (number === process.env.TWILIO_PHONE_NUMBER) {
+      return res.status(400).json({ message: 'Số điện thoại nhận OTP không được giống với số điện thoại gửi OTP' });
+    }
+
+    // Tạo mã OTP ngẫu nhiên
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Gửi OTP qua SMS
+    await twilioClient.messages.create({
+      body: `Your OTP code is ${otp}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: number
+    });
+
+    // Lưu OTP và các giá trị mặc định vào cơ sở dữ liệu
+    const randomPassword = crypto.randomBytes(8).toString('hex');
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    await UserService.saveOtp(number, otp, {
+      username: number,
+      password: hashedPassword,
+      nameProfile: 'default_name',
+      number: number,
+      address: 'default_address',
+      email: `${number}@example.com`,
+      groupId: '66e3a2e0be2552e93df06aa9'
+    });
+
+    res.status(200).json({ status: true, success: "OTP sent successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.verifyOtp = async (req, res, next) => {
+  const { number, otp } = req.body;
+  try {
+    // Xác thực OTP
+    let user = await UserService.verifyOtp(number, otp);
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // Cập nhật các giá trị mặc định nếu người dùng đã tồn tại
+    user.username = user.username || number;
+    user.password = user.password || await bcrypt.hash(crypto.randomBytes(8).toString('hex'), 10);
+    user.nameProfile = user.nameProfile || 'default_name';
+    user.address = user.address || 'default_address';
+    user.email = user.email || `${number}@example.com`;
+    user.groupId = user.groupId || '66e3a2e0be2552e93df06aa9';
+    await user.save();
+
+    // Tạo JWT
+    let tokenData = { 
+      _id: user._id, 
+      username: user.username, 
+      nameProfile: user.nameProfile, 
+      address: user.address, 
+      groupId: user.groupId 
+    };
+
+    const jwtToken = await UserService.generateToken(tokenData, process.env.SECRET_KEY, '1h');
+
+    // Trả về JWT và thông tin người dùng
+    res.status(200).json({ 
+      status: 200, 
+      token: jwtToken, 
+      user: user 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 exports.googleAuth = async (req, res, next) => {
   const { token } = req.body;
@@ -51,7 +132,7 @@ exports.googleAuth = async (req, res, next) => {
       groupId: user.groupId 
     };
 
-    const jwtToken = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const jwtToken = await UserService.generateToken(tokenData, process.env.SECRET_KEY, '1h');
 
     // Loại bỏ mật khẩu từ đối tượng user trước khi trả về phản hồi
     const { password: _, ...userWithoutPassword } = user.toObject();
@@ -112,7 +193,7 @@ exports.facebookAuth = async (req, res, next) => {
       groupId: user.groupId 
     };
 
-    const jwtToken = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const jwtToken = await UserService.generateToken(tokenData, process.env.SECRET_KEY, '1h');
 
     // Loại bỏ mật khẩu từ đối tượng user trước khi trả về phản hồi
     const { password: _, ...userWithoutPassword } = user.toObject();

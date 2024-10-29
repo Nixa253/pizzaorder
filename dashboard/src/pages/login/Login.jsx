@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import FacebookLogin from 'react-facebook-login';
 import "./login.scss";
@@ -18,13 +18,9 @@ const Login = () => {
 
     try {
       const response = await axios.post('http://localhost:5000/login', { username, password });
-
       console.log(response.data);
-    
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userGroup', response.data.user.groupId);
-
-      // Chuyển hướng đến trang dashboard
       navigate('/home');
     } catch (err) {
       setError('Đăng nhập thất bại. Vui lòng thử lại.');
@@ -100,6 +96,11 @@ const Login = () => {
           </button>
         </form>
         <div className="social-login-buttons">
+           <Link to="/phone-login" className="phone-login-link">
+          <button className="phone-login-button">
+            Đăng nhập bằng số điện thoại
+          </button>
+        </Link>
           <FacebookLogin
             appId={process.env.REACT_APP_FB_CLIENT_ID}       
             autoLoad={false}
@@ -118,6 +119,7 @@ const Login = () => {
             className="google-login"
           />
         </div>
+       
         <p className="forgot-password">Quên mật khẩu?</p>
       </div>
     </div>  

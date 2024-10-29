@@ -100,14 +100,17 @@ const Sidebar = ({ setCurrentTable }) => {
               <span>Orders</span>
             </li>
           </Link>
-          <p className="title">ROLE</p>
+      
           {userGroup === '66d94d28c11c24619def8cd7' && (
+          <>
+                <p className="title">ROLE</p>
           <Link to="/group" style={{ textDecoration: "none" }}>
             <li onClick={() => setCurrentTable("grouptable")}>
               <GroupsIcon className="icon" />
               <span>Group</span>
             </li>
           </Link>
+          </>
         )}
           {userGroup === '66d94d28c11c24619def8cd7' && (
             <Link to="/permissions" style={{ textDecoration: "none" }}>

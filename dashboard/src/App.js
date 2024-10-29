@@ -10,6 +10,7 @@ import NewPermission from "./pages/new/NewPermission";
 import NewTopping from "./pages/new/NewTopping";
 import NewOrder from "./pages/new/NewOrder";
 import NewUser from "./pages/new/NewUser";
+import PhoneLogin from "./pages/login/PhoneLogin";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./style/dark.scss";
 import { useContext } from "react";
@@ -26,6 +27,7 @@ function App() {
             <Route index element={<Login />} />
             <Route path="home" element={<Home />} />
             <Route path="login" element={<Login />} />
+            <Route path="/phone-login" element={<PhoneLogin />} />
             <Route path="users">
               <Route index element={<List initialTable="usertable"/>} />
               {/* <Route path=":userId" element={<Single />} /> */}

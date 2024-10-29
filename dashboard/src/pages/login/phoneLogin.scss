@@ -1,0 +1,82 @@
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #e0eafc, #cfdef3);
+  }
+  
+  .login-container {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 350px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  .login-container h2 {
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+  
+  .login-container .otp-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .login-container .otp-login input {
+    width: 90%;
+    padding: 0.85rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.3s ease;
+  
+    &:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+    }
+  }
+  
+  .login-container .otp-login button {
+    width: 98%;
+    padding: 0.85rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem; /* Thêm khoảng cách giữa các nút */
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+  
+    &:hover {
+      background: linear-gradient(135deg, #0056b3, #004080);
+      transform: scale(1.05);
+    }
+  
+    &:disabled {
+      background: #c0c0c0;
+      cursor: not-allowed;
+    }
+  }
+  
+  .login-container .error {
+    color: red;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }

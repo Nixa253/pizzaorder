@@ -3,6 +3,35 @@ const jwt = require('jsonwebtoken');
 
 
 class UserService {
+    static async saveOtp(number, otp, userData) {
+        try {
+          const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // OTP hết hạn sau 10 phút
+          await UserModel.updateOne(
+            { number: number },
+            { otp, otpExpires, ...userData },
+            { upsert: true }
+          );
+        } catch (error) {
+          throw error;
+        }
+      }
+    
+      static async verifyOtp(number, otp) {
+        try {
+          const user = await UserModel.findOne({ number: number, otp });
+          if (!user || user.otpExpires < Date.now()) {
+            return null;
+          }
+          // Xóa OTP sau khi xác thực thành công
+          user.otp = null;
+          user.otpExpires = null;
+          await user.save();
+          return user;
+        } catch (error) {
+          throw error;
+        }
+      }
+
     static async registerUser(username, password, nameProfile, number, address, email, groupId) {
         try {
             const createUser = new UserModel({ username, password, nameProfile, number, address, email, groupId });
@@ -84,7 +113,7 @@ class UserService {
         } catch (error) {
             throw error;
         }
-    }
+    }   
 
     static async updateUserById(userId, updateData) {
         try {

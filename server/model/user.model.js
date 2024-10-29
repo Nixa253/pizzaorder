@@ -22,7 +22,8 @@ const userSchema = new Schema({
     number: {
         type: String,
         required: true,
-        unique: true 
+        unique: true,
+        sparse: true 
     },
     address: {
         type: String,
@@ -44,6 +45,14 @@ const userSchema = new Schema({
     },
     googleId: {
         type: String,
+        default: null
+    },
+    otp: {
+        type: String,
+        default: null
+    },
+    otpExpires: {
+        type: Date,
         default: null
     }
 }, { collection: 'user' });
