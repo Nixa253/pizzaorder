@@ -6,19 +6,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from '../../components/datatable/axiosInstance';
 
 const NewUser = ({ title }) => {
-    const [inputs, setInputs] = useState({
-      username: "",
-      nameProfile: "",
-      number: "",
-      address: "",
-      email: "",
-      groupId: "",
-      password: ""
-    });
+  const [inputs, setInputs] = useState({
+    username: "",
+    nameProfile: "",
+    number: "",
+    address: "",
+    email: "",
+    groupId: "",
+    password: ""
+  });
   const [errors, setErrors] = useState({});
   const [groups, setGroups] = useState([]);
   const { userId } = useParams();
   const navigate = useNavigate();
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [isPhoneNumberUser, setIsPhoneNumberUser] = useState(false);
 
   useEffect(() => {
     // Fetch the list of groups
@@ -45,6 +47,8 @@ const NewUser = ({ title }) => {
             groupId: data.groupId,
             password: "" // Không đặt mật khẩu vì lý do bảo mật
           });
+          setIsGoogleUser(!!data.googleId);
+          setIsPhoneNumberUser(data.number !== 'default_number');
         })
         .catch(error => console.error('Lỗi khi lấy thông tin người dùng:', error));
     }
@@ -136,6 +140,7 @@ const NewUser = ({ title }) => {
                   value={inputs.number}
                   onChange={handleInputChange}
                   placeholder="Nhập số điện thoại"
+                  disabled={isPhoneNumberUser} // Vô hiệu hóa nếu đăng nhập bằng số điện thoại
                 />
               </div>
 
@@ -158,6 +163,7 @@ const NewUser = ({ title }) => {
                   value={inputs.email}
                   onChange={handleInputChange}
                   placeholder="Nhập email"
+                  disabled={isGoogleUser} // Vô hiệu hóa nếu đăng nhập bằng Google
                 />
                 {errors.email && <span className="error">{errors.email}</span>}
               </div>

@@ -29,16 +29,29 @@ const Login = () => {
     setLoading(false);
   };
 
+  // const handleGoogleSuccess = async (response) => {
+  //   const tokenId = response.credential;
+  //   console.log(tokenId);
+
+  //   try {
+  //     const res = await axios.post('http://localhost:5000/auth/google', { token: tokenId });
+  //     console.log(res.data.user.groupId);
+  //     localStorage.setItem('token', res.data.token);
+  //     localStorage.setItem('userGroup', res.data.user.groupId);
+  //     navigate('/home');
+  //   } catch (err) {
+  //     setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
+  //   }
+  // };
+
   const handleGoogleSuccess = async (response) => {
     const tokenId = response.credential;
     console.log(tokenId);
-
+  
     try {
       const res = await axios.post('http://localhost:5000/auth/google', { token: tokenId });
-      console.log(res.data.user.groupId);
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('userGroup', res.data.user.groupId);
-      navigate('/home');
+      console.log(res.data); // Kiểm tra dữ liệu trả về
+      navigate('/phone-login', { state: { googleId: res.data.googleId, name: res.data.name, email: res.data.email } });
     } catch (err) {
       setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
     }
